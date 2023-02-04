@@ -7,15 +7,15 @@ main :: () {
 
    rl.SetTargetFPS(60);
 
-   ball_pos := rl.Vector2.{ WIDTH / 2, HEIGHT / 2 };
+   ball_pos := rl.Vec2.{ x = WIDTH / 2, y = HEIGHT / 2 };
 
    while !rl.WindowShouldClose() {
       dt := rl.GetFrameTime();
 
-      if rl.IsKeyDown(xx rl.KeyboardKey.RIGHT) then ball_pos.x += 200 * dt;
-      if rl.IsKeyDown(xx rl.KeyboardKey.LEFT)  then ball_pos.x -= 200 * dt;
-      if rl.IsKeyDown(xx rl.KeyboardKey.UP)    then ball_pos.y -= 200 * dt;
-      if rl.IsKeyDown(xx rl.KeyboardKey.DOWN)  then ball_pos.y += 200 * dt;
+      if rl.IsKeyDown(.RIGHT) then ball_pos.x += 200 * dt;
+      if rl.IsKeyDown(.LEFT)  then ball_pos.x -= 200 * dt;
+      if rl.IsKeyDown(.UP)    then ball_pos.y -= 200 * dt;
+      if rl.IsKeyDown(.DOWN)  then ball_pos.y += 200 * dt;
 
       rl.BeginEndDrawing(#code {
          rl.ClearBackground(rl.RAYWHITE);
@@ -25,4 +25,6 @@ main :: () {
    }
 }
 
-rl :: #import,file "../module.jai";
+#import "Basic";
+
+rl :: #import,file "../module.jai"(true);

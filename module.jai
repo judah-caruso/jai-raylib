@@ -1,3 +1,5 @@
+#module_parameters(WITH_CUSTOM := false, WITH_INTEROP := true);
+
 #if OS == .WINDOWS {
    raylib :: #library "win/raylib-420";
 } else #if OS == .MACOS {
@@ -36,4 +38,12 @@ MAGENTA    :: Color.{ 255, 0, 255, 255 };     // Magenta
 RAYWHITE   :: Color.{ 245, 245, 245, 255 };   // My own White (raylib logo)
 
 #load "raylib.jai";
-#load "extras.jai";
+#load "macros.jai";
+
+#if WITH_INTEROP {
+   #load "interop.jai";
+}
+
+#if WITH_CUSTOM {
+   #load "custom.jai";
+}
