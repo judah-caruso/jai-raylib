@@ -9,7 +9,9 @@ See: `examples/`
 ## Notes
 
 - These are generated using Jai's `Bindings_Generator` library (`jai generate.jai`)
-- `extras.jai` contains auto-generated macros for Begin/End procs.
+- `macros.jai` contains auto-generated macros for Begin/End procs
+- `custom.jai` contains custom types that can convert to/from Jai/Raylib types
+- `interop.jai` contains overloads to make calling into Raylib easier
 
 To generate bindings for a different version:
 
