@@ -1,13 +1,6 @@
 #module_parameters(WITH_INTEROP := false, WITH_EXTRAS := false);
 
-#if OS == {
-   case .WINDOWS;
-      raylib :: #library "win/raylib-420";
-   case .MACOS;
-      raylib :: #library "mac/raylib-420";
-   case .LINUX;
-      raylib :: #library "linux/raylib-420";
-}
+#scope_export
 
 va_list :: *void;
 
@@ -36,6 +29,15 @@ BLANK      :: Color.{ 0, 0, 0, 0 };           // Blank (Transparent)
 MAGENTA    :: Color.{ 255, 0, 255, 255 };     // Magenta
 RAYWHITE   :: Color.{ 245, 245, 245, 255 };   // My own White (raylib logo)
 
+#if OS == {
+   case .WINDOWS;
+      raylib :: #library,no_dll "win/raylib";
+   case .MACOS;
+      raylib :: #library,no_dll "mac/raylib";
+   case .LINUX;
+      raylib :: #library,no_dll "linux/raylib";
+}
+
 #load "raylib.jai";
 
 #if WITH_INTEROP {
@@ -44,4 +46,11 @@ RAYWHITE   :: Color.{ 245, 245, 245, 255 };   // My own White (raylib logo)
 
 #if WITH_EXTRAS {
    #load "extras.jai";
+}
+
+#if OS == .WINDOWS {
+   user32  :: #library,system,link_always "user32";
+   winmm   :: #library,system,link_always "winmm";
+   gdi32   :: #library,system,link_always "gdi32";
+   shell32 :: #library,system,link_always "shell32";
 }

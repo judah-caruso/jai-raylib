@@ -1,4 +1,4 @@
-LIBRARY_NAME :: "raylib-420";
+LIBRARY_NAME :: "raylib";
 
 #run {
    set_build_options_dc(.{
@@ -12,22 +12,23 @@ LIBRARY_NAME :: "raylib-420";
    opts.strip_flags                   = 0;
    opts.generate_library_declarations = false;
 
-   opts.visitor = (decl: *Declaration, parent: *Declaration) -> Declaration_Visit_Result {
-      if decl.kind == .FUNCTION {
-         // Make foreign functions use 'raylib' instead of 'raylib_version'
-         func := cast(*Function)decl;
-         if func.library && func.library.name.count {
-            func.library.name = "raylib";
-         }
+   // not working right now.
+   // opts.visitor = (decl: *Declaration, parent: *Declaration) -> Declaration_Visit_Result {
+   //    if decl.kind == .FUNCTION {
+   //       // Make foreign functions use 'raylib' instead of 'raylib_version'
+   //       func := cast(*Function)decl;
+   //       if func.library && func.library.name.count {
+   //          func.library.name = "raylib";
+   //       }
 
-         // Save any procs starting with Begin (used later)
-         if starts_with(decl.name, "Begin") {
-            array_add(*begin_end_procs, decl);
-         }
-      };
+   //       // Save any procs starting with Begin (used later)
+   //       if starts_with(decl.name, "Begin") {
+   //          array_add(*begin_end_procs, decl);
+   //       }
+   //    };
 
-      return .RECURSE;
-   };
+   //    return .RECURSE;
+   // };
 
    #if OS == .WINDOWS {
       array_add(*opts.libpaths, "win");

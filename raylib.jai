@@ -1,12 +1,15 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai /Users/judah/Main/1-Personal/1.1-Programming/Jai/raylib/generate.jai
+// jai C:/Users/Judah/Desktop/Code/jai/raylib/generate.jai
 //
 
 
 
-RAYLIB_VERSION :: "4.2";
+RAYLIB_VERSION_MAJOR :: 5;
+RAYLIB_VERSION_MINOR :: 0;
+RAYLIB_VERSION_PATCH :: 0;
+RAYLIB_VERSION :: "5.0";
 
 PI :: 3.14159265358979323846;
 
@@ -16,7 +19,7 @@ RAD2DEG :: 180.0/PI;
 
 EPSILON :: 0.000001;
 
-RLGL_VERSION :: "4.0";
+RLGL_VERSION :: "4.5";
 
 RL_DEFAULT_BATCH_BUFFER_ELEMENTS :: 8192;
 
@@ -46,6 +49,7 @@ RL_TEXTURE_FILTER_NEAREST_MIP_LINEAR :: 0x2702;
 RL_TEXTURE_FILTER_LINEAR_MIP_NEAREST :: 0x2701;
 RL_TEXTURE_FILTER_MIP_LINEAR :: 0x2703;
 RL_TEXTURE_FILTER_ANISOTROPIC :: 0x3000;
+RL_TEXTURE_MIPMAP_BIAS_RATIO :: 0x4000;
 
 RL_TEXTURE_WRAP_REPEAT :: 0x2901;
 RL_TEXTURE_WRAP_CLAMP :: 0x812F;
@@ -77,6 +81,36 @@ RL_FRAGMENT_SHADER :: 0x8B30;
 RL_VERTEX_SHADER :: 0x8B31;
 RL_COMPUTE_SHADER :: 0x91B9;
 
+RL_ZERO :: 0;
+RL_ONE :: 1;
+RL_SRC_COLOR :: 0x0300;
+RL_ONE_MINUS_SRC_COLOR :: 0x0301;
+RL_SRC_ALPHA :: 0x0302;
+RL_ONE_MINUS_SRC_ALPHA :: 0x0303;
+RL_DST_ALPHA :: 0x0304;
+RL_ONE_MINUS_DST_ALPHA :: 0x0305;
+RL_DST_COLOR :: 0x0306;
+RL_ONE_MINUS_DST_COLOR :: 0x0307;
+RL_SRC_ALPHA_SATURATE :: 0x0308;
+RL_CONSTANT_COLOR :: 0x8001;
+RL_ONE_MINUS_CONSTANT_COLOR :: 0x8002;
+RL_CONSTANT_ALPHA :: 0x8003;
+RL_ONE_MINUS_CONSTANT_ALPHA :: 0x8004;
+
+RL_FUNC_ADD :: 0x8006;
+RL_MIN :: 0x8007;
+RL_MAX :: 0x8008;
+RL_FUNC_SUBTRACT :: 0x800A;
+RL_FUNC_REVERSE_SUBTRACT :: 0x800B;
+RL_BLEND_EQUATION :: 0x8009;
+RL_BLEND_EQUATION_RGB :: 0x8009;
+RL_BLEND_EQUATION_ALPHA :: 0x883D;
+RL_BLEND_DST_RGB :: 0x80C8;
+RL_BLEND_SRC_RGB :: 0x80C9;
+RL_BLEND_DST_ALPHA :: 0x80CA;
+RL_BLEND_SRC_ALPHA :: 0x80CB;
+RL_BLEND_COLOR :: 0x8005;
+
 // Vector2, 2 components
 Vector2 :: struct {
     x: float; // Vector x component
@@ -101,7 +135,7 @@ Vector4 :: struct {
 // Quaternion, 4 components (Vector4 alias)
 Quaternion :: Vector4;
 
-// Matrix, 4x4 components, column major, OpenGL style, right handed
+// Matrix, 4x4 components, column major, OpenGL style, right-handed
 Matrix :: struct {
     m0:  float; // Matrix first row (4 components)
     m4:  float; // Matrix first row (4 components)
@@ -205,7 +239,7 @@ Camera3D :: struct {
     position:   Vector3; // Camera position
     target:     Vector3; // Camera target it looks-at
     up:         Vector3; // Camera up vector (rotation over its axis)
-    fovy:       float; // Camera field-of-view apperture in Y (degrees) in perspective, used as near plane width in orthographic
+    fovy:       float; // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane width in orthographic
     projection: s32; // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
 }
 
@@ -261,7 +295,7 @@ Material :: struct {
     params: [4] float; // Material generic parameters (if required)
 }
 
-// Transform, vectex transformation data
+// Transform, vertex transformation data
 Transform :: struct {
     translation: Vector3; // Translation
     rotation:    Quaternion; // Rotation
@@ -295,6 +329,7 @@ ModelAnimation :: struct {
     frameCount: s32; // Number of animation frames
     bones:      *BoneInfo; // Bones information (skeleton)
     framePoses: **Transform; // Poses array by frame
+    name:       [32] u8; // Animation name
 }
 
 // Ray, ray for raycasting
@@ -306,8 +341,8 @@ Ray :: struct {
 // RayCollision, ray hit information
 RayCollision :: struct {
     hit:      bool; // Did the ray hit something?
-    distance: float; // Distance to nearest hit
-    point:    Vector3; // Point of nearest hit
+    distance: float; // Distance to the nearest hit
+    point:    Vector3; // Point of the nearest hit
     normal:   Vector3; // Surface normal of hit
 }
 
@@ -388,13 +423,27 @@ FilePathList :: struct {
     paths:    **u8; // Filepaths entries
 }
 
+// Automation event
+AutomationEvent :: struct {
+    frame:  u32; // Event frame
+    type:   u32; // Event type (AutomationEventType)
+    params: [4] s32; // Event parameters (if required)
+}
+
+// Automation event list
+AutomationEventList :: struct {
+    capacity: u32; // Events max entries (MAX_AUTOMATION_EVENTS)
+    count:    u32; // Events entries count
+    events:   *AutomationEvent; // Events entries
+}
+
 //----------------------------------------------------------------------------------
 // Enumerators Definition
 //----------------------------------------------------------------------------------
 // System/Window config flags
 // NOTE: Every bit registers one state (use it with bit masks)
 // By default all flags are set to 0
-ConfigFlags :: enum u32 {
+ConfigFlags :: enum s32 {
     VSYNC_HINT               :: 64;
     FULLSCREEN_MODE          :: 2;
     WINDOW_RESIZABLE         :: 4;
@@ -408,6 +457,7 @@ ConfigFlags :: enum u32 {
     WINDOW_TRANSPARENT       :: 16;
     WINDOW_HIGHDPI           :: 8192;
     WINDOW_MOUSE_PASSTHROUGH :: 16384;
+    BORDERLESS_WINDOWED_MODE :: 32768;
     MSAA_4X_HINT             :: 32;
     INTERLACED_HINT          :: 65536;
 
@@ -424,13 +474,14 @@ ConfigFlags :: enum u32 {
     FLAG_WINDOW_TRANSPARENT       :: WINDOW_TRANSPARENT;
     FLAG_WINDOW_HIGHDPI           :: WINDOW_HIGHDPI;
     FLAG_WINDOW_MOUSE_PASSTHROUGH :: WINDOW_MOUSE_PASSTHROUGH;
+    FLAG_BORDERLESS_WINDOWED_MODE :: BORDERLESS_WINDOWED_MODE;
     FLAG_MSAA_4X_HINT             :: MSAA_4X_HINT;
     FLAG_INTERLACED_HINT          :: INTERLACED_HINT;
 }
 
 // Trace log level
 // NOTE: Organized by priority level
-TraceLogLevel :: enum u32 {
+TraceLogLevel :: enum s32 {
     ALL     :: 0;
     TRACE   :: 1;
     DEBUG   :: 2;
@@ -453,7 +504,7 @@ TraceLogLevel :: enum u32 {
 // Keyboard keys (US keyboard layout)
 // NOTE: Use GetKeyPressed() to allow redefining
 // required keys for alternative layouts
-KeyboardKey :: enum u32 {
+KeyboardKey :: enum s32 {
     NULL          :: 0;
 
     APOSTROPHE    :: 39;
@@ -686,7 +737,7 @@ KeyboardKey :: enum u32 {
 }
 
 // Mouse buttons
-MouseButton :: enum u32 {
+MouseButton :: enum s32 {
     LEFT    :: 0;
     RIGHT   :: 1;
     MIDDLE  :: 2;
@@ -705,7 +756,7 @@ MouseButton :: enum u32 {
 }
 
 // Mouse cursor
-MouseCursor :: enum u32 {
+MouseCursor :: enum s32 {
     DEFAULT       :: 0;
     ARROW         :: 1;
     IBEAM         :: 2;
@@ -732,7 +783,7 @@ MouseCursor :: enum u32 {
 }
 
 // Gamepad buttons
-GamepadButton :: enum u32 {
+GamepadButton :: enum s32 {
     UNKNOWN          :: 0;
     LEFT_FACE_UP     :: 1;
     LEFT_FACE_RIGHT  :: 2;
@@ -773,7 +824,7 @@ GamepadButton :: enum u32 {
 }
 
 // Gamepad axis
-GamepadAxis :: enum u32 {
+GamepadAxis :: enum s32 {
     LEFT_X        :: 0;
     LEFT_Y        :: 1;
     RIGHT_X       :: 2;
@@ -790,7 +841,7 @@ GamepadAxis :: enum u32 {
 }
 
 // Material map index
-MaterialMapIndex :: enum u32 {
+MaterialMapIndex :: enum s32 {
     ALBEDO     :: 0;
     METALNESS  :: 1;
     NORMAL     :: 2;
@@ -817,7 +868,7 @@ MaterialMapIndex :: enum u32 {
 }
 
 // Shader location index
-ShaderLocationIndex :: enum u32 {
+ShaderLocationIndex :: enum s32 {
     VERTEX_POSITION   :: 0;
     VERTEX_TEXCOORD01 :: 1;
     VERTEX_TEXCOORD02 :: 2;
@@ -874,7 +925,7 @@ ShaderLocationIndex :: enum u32 {
 }
 
 // Shader uniform data type
-ShaderUniformDataType :: enum u32 {
+ShaderUniformDataType :: enum s32 {
     FLOAT     :: 0;
     VEC2      :: 1;
     VEC3      :: 2;
@@ -897,7 +948,7 @@ ShaderUniformDataType :: enum u32 {
 }
 
 // Shader attribute data types
-ShaderAttributeDataType :: enum u32 {
+ShaderAttributeDataType :: enum s32 {
     FLOAT :: 0;
     VEC2  :: 1;
     VEC3  :: 2;
@@ -911,7 +962,7 @@ ShaderAttributeDataType :: enum u32 {
 
 // Pixel formats
 // NOTE: Support depends on OpenGL version and platform
-PixelFormat :: enum u32 {
+PixelFormat :: enum s32 {
     UNCOMPRESSED_GRAYSCALE    :: 1;
     UNCOMPRESSED_GRAY_ALPHA   :: 2;
     UNCOMPRESSED_R5G6B5       :: 3;
@@ -922,17 +973,20 @@ PixelFormat :: enum u32 {
     UNCOMPRESSED_R32          :: 8;
     UNCOMPRESSED_R32G32B32    :: 9;
     UNCOMPRESSED_R32G32B32A32 :: 10;
-    COMPRESSED_DXT1_RGB       :: 11;
-    COMPRESSED_DXT1_RGBA      :: 12;
-    COMPRESSED_DXT3_RGBA      :: 13;
-    COMPRESSED_DXT5_RGBA      :: 14;
-    COMPRESSED_ETC1_RGB       :: 15;
-    COMPRESSED_ETC2_RGB       :: 16;
-    COMPRESSED_ETC2_EAC_RGBA  :: 17;
-    COMPRESSED_PVRT_RGB       :: 18;
-    COMPRESSED_PVRT_RGBA      :: 19;
-    COMPRESSED_ASTC_4x4_RGBA  :: 20;
-    COMPRESSED_ASTC_8x8_RGBA  :: 21;
+    UNCOMPRESSED_R16          :: 11;
+    UNCOMPRESSED_R16G16B16    :: 12;
+    UNCOMPRESSED_R16G16B16A16 :: 13;
+    COMPRESSED_DXT1_RGB       :: 14;
+    COMPRESSED_DXT1_RGBA      :: 15;
+    COMPRESSED_DXT3_RGBA      :: 16;
+    COMPRESSED_DXT5_RGBA      :: 17;
+    COMPRESSED_ETC1_RGB       :: 18;
+    COMPRESSED_ETC2_RGB       :: 19;
+    COMPRESSED_ETC2_EAC_RGBA  :: 20;
+    COMPRESSED_PVRT_RGB       :: 21;
+    COMPRESSED_PVRT_RGBA      :: 22;
+    COMPRESSED_ASTC_4x4_RGBA  :: 23;
+    COMPRESSED_ASTC_8x8_RGBA  :: 24;
 
     PIXELFORMAT_UNCOMPRESSED_GRAYSCALE    :: UNCOMPRESSED_GRAYSCALE;
     PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA   :: UNCOMPRESSED_GRAY_ALPHA;
@@ -944,6 +998,9 @@ PixelFormat :: enum u32 {
     PIXELFORMAT_UNCOMPRESSED_R32          :: UNCOMPRESSED_R32;
     PIXELFORMAT_UNCOMPRESSED_R32G32B32    :: UNCOMPRESSED_R32G32B32;
     PIXELFORMAT_UNCOMPRESSED_R32G32B32A32 :: UNCOMPRESSED_R32G32B32A32;
+    PIXELFORMAT_UNCOMPRESSED_R16          :: UNCOMPRESSED_R16;
+    PIXELFORMAT_UNCOMPRESSED_R16G16B16    :: UNCOMPRESSED_R16G16B16;
+    PIXELFORMAT_UNCOMPRESSED_R16G16B16A16 :: UNCOMPRESSED_R16G16B16A16;
     PIXELFORMAT_COMPRESSED_DXT1_RGB       :: COMPRESSED_DXT1_RGB;
     PIXELFORMAT_COMPRESSED_DXT1_RGBA      :: COMPRESSED_DXT1_RGBA;
     PIXELFORMAT_COMPRESSED_DXT3_RGBA      :: COMPRESSED_DXT3_RGBA;
@@ -960,7 +1017,7 @@ PixelFormat :: enum u32 {
 // Texture parameters: filter mode
 // NOTE 1: Filtering considers mipmaps if available in the texture
 // NOTE 2: Filter is accordingly set for minification and magnification
-TextureFilter :: enum u32 {
+TextureFilter :: enum s32 {
     POINT           :: 0;
     BILINEAR        :: 1;
     TRILINEAR       :: 2;
@@ -977,7 +1034,7 @@ TextureFilter :: enum u32 {
 }
 
 // Texture parameters: wrap mode
-TextureWrap :: enum u32 {
+TextureWrap :: enum s32 {
     REPEAT        :: 0;
     CLAMP         :: 1;
     MIRROR_REPEAT :: 2;
@@ -990,7 +1047,7 @@ TextureWrap :: enum u32 {
 }
 
 // Cubemap layouts
-CubemapLayout :: enum u32 {
+CubemapLayout :: enum s32 {
     AUTO_DETECT         :: 0;
     LINE_VERTICAL       :: 1;
     LINE_HORIZONTAL     :: 2;
@@ -1007,7 +1064,7 @@ CubemapLayout :: enum u32 {
 }
 
 // Font type, defines generation method
-FontType :: enum u32 {
+FontType :: enum s32 {
     DEFAULT :: 0;
     BITMAP  :: 1;
     SDF     :: 2;
@@ -1018,7 +1075,7 @@ FontType :: enum u32 {
 }
 
 // Color blending modes (pre-defined)
-BlendMode :: enum u32 {
+BlendMode :: enum s32 {
     ALPHA             :: 0;
     ADDITIVE          :: 1;
     MULTIPLIED        :: 2;
@@ -1026,6 +1083,7 @@ BlendMode :: enum u32 {
     SUBTRACT_COLORS   :: 4;
     ALPHA_PREMULTIPLY :: 5;
     CUSTOM            :: 6;
+    CUSTOM_SEPARATE   :: 7;
 
     BLEND_ALPHA             :: ALPHA;
     BLEND_ADDITIVE          :: ADDITIVE;
@@ -1034,11 +1092,12 @@ BlendMode :: enum u32 {
     BLEND_SUBTRACT_COLORS   :: SUBTRACT_COLORS;
     BLEND_ALPHA_PREMULTIPLY :: ALPHA_PREMULTIPLY;
     BLEND_CUSTOM            :: CUSTOM;
+    BLEND_CUSTOM_SEPARATE   :: CUSTOM_SEPARATE;
 }
 
 // Gesture
-// NOTE: It could be used as flags to enable only some gestures
-Gesture :: enum u32 {
+// NOTE: Provided as bit-wise flags to enable only desired gestures
+Gesture :: enum s32 {
     NONE        :: 0;
     TAP         :: 1;
     DOUBLETAP   :: 2;
@@ -1065,7 +1124,7 @@ Gesture :: enum u32 {
 }
 
 // Camera system modes
-CameraMode :: enum u32 {
+CameraMode :: enum s32 {
     CUSTOM       :: 0;
     FREE         :: 1;
     ORBITAL      :: 2;
@@ -1080,7 +1139,7 @@ CameraMode :: enum u32 {
 }
 
 // Camera projection
-CameraProjection :: enum u32 {
+CameraProjection :: enum s32 {
     PERSPECTIVE  :: 0;
     ORTHOGRAPHIC :: 1;
 
@@ -1089,7 +1148,7 @@ CameraProjection :: enum u32 {
 }
 
 // N-patch layout
-NPatchLayout :: enum u32 {
+NPatchLayout :: enum s32 {
     NINE_PATCH             :: 0;
     THREE_PATCH_VERTICAL   :: 1;
     THREE_PATCH_HORIZONTAL :: 2;
@@ -1100,17 +1159,17 @@ NPatchLayout :: enum u32 {
 }
 
 // Callbacks to hook some internal functions
-// WARNING: This callbacks are intended for advance users
+// WARNING: These callbacks are intended for advance users
 TraceLogCallback :: #type (logLevel: s32, text: *u8, args: va_list) -> void #c_call;
-LoadFileDataCallback :: #type (fileName: *u8, bytesRead: *u32) -> *u8 #c_call;
-SaveFileDataCallback :: #type (fileName: *u8, data: *void, bytesToWrite: u32) -> bool #c_call;
+LoadFileDataCallback :: #type (fileName: *u8, dataSize: *s32) -> *u8 #c_call;
+SaveFileDataCallback :: #type (fileName: *u8, data: *void, dataSize: s32) -> bool #c_call;
 LoadFileTextCallback :: #type (fileName: *u8) -> *u8 #c_call;
 SaveFileTextCallback :: #type (fileName: *u8, text: *u8) -> bool #c_call;
 
 // Window-related functions
 InitWindow :: (width: s32, height: s32, title: *u8) -> void #foreign raylib;
-WindowShouldClose :: () -> bool #foreign raylib;
 CloseWindow :: () -> void #foreign raylib;
+WindowShouldClose :: () -> bool #foreign raylib;
 IsWindowReady :: () -> bool #foreign raylib;
 IsWindowFullscreen :: () -> bool #foreign raylib;
 IsWindowHidden :: () -> bool #foreign raylib;
@@ -1122,16 +1181,20 @@ IsWindowState :: (flag: u32) -> bool #foreign raylib;
 SetWindowState :: (flags: u32) -> void #foreign raylib;
 ClearWindowState :: (flags: u32) -> void #foreign raylib;
 ToggleFullscreen :: () -> void #foreign raylib;
+ToggleBorderlessWindowed :: () -> void #foreign raylib;
 MaximizeWindow :: () -> void #foreign raylib;
 MinimizeWindow :: () -> void #foreign raylib;
 RestoreWindow :: () -> void #foreign raylib;
 SetWindowIcon :: (image: Image) -> void #foreign raylib;
+SetWindowIcons :: (images: *Image, count: s32) -> void #foreign raylib;
 SetWindowTitle :: (title: *u8) -> void #foreign raylib;
 SetWindowPosition :: (x: s32, y: s32) -> void #foreign raylib;
 SetWindowMonitor :: (monitor: s32) -> void #foreign raylib;
 SetWindowMinSize :: (width: s32, height: s32) -> void #foreign raylib;
+SetWindowMaxSize :: (width: s32, height: s32) -> void #foreign raylib;
 SetWindowSize :: (width: s32, height: s32) -> void #foreign raylib;
 SetWindowOpacity :: (opacity: float) -> void #foreign raylib;
+SetWindowFocused :: () -> void #foreign raylib;
 GetWindowHandle :: () -> *void #foreign raylib;
 GetScreenWidth :: () -> s32 #foreign raylib;
 GetScreenHeight :: () -> s32 #foreign raylib;
@@ -1152,14 +1215,6 @@ SetClipboardText :: (text: *u8) -> void #foreign raylib;
 GetClipboardText :: () -> *u8 #foreign raylib;
 EnableEventWaiting :: () -> void #foreign raylib;
 DisableEventWaiting :: () -> void #foreign raylib;
-
-// Custom frame control functions
-// NOTE: Those functions are intended for advance users that want full control over the frame processing
-// By default EndDrawing() does this job: draws everything + SwapScreenBuffer() + manage frame timming + PollInputEvents()
-// To avoid that behaviour and control frame processes manually, enable in config.h: SUPPORT_CUSTOM_FRAME_CONTROL
-SwapScreenBuffer :: () -> void #foreign raylib;
-PollInputEvents :: () -> void #foreign raylib;
-WaitTime :: (seconds: float64) -> void #foreign raylib;
 
 // Cursor-related functions
 ShowCursor :: () -> void #foreign raylib;
@@ -1196,6 +1251,7 @@ UnloadVrStereoConfig :: (config: VrStereoConfig) -> void #foreign raylib;
 // NOTE: Shader functionality is not available on OpenGL 1.1
 LoadShader :: (vsFileName: *u8, fsFileName: *u8) -> Shader #foreign raylib;
 LoadShaderFromMemory :: (vsCode: *u8, fsCode: *u8) -> Shader #foreign raylib;
+IsShaderReady :: (shader: Shader) -> bool #foreign raylib;
 GetShaderLocation :: (shader: Shader, uniformName: *u8) -> s32 #foreign raylib;
 GetShaderLocationAttrib :: (shader: Shader, attribName: *u8) -> s32 #foreign raylib;
 SetShaderValue :: (shader: Shader, locIndex: s32, value: *void, uniformType: s32) -> void #foreign raylib;
@@ -1215,16 +1271,31 @@ GetWorldToScreen2D :: (position: Vector2, camera: Camera2D) -> Vector2 #foreign 
 
 // Timing-related functions
 SetTargetFPS :: (fps: s32) -> void #foreign raylib;
-GetFPS :: () -> s32 #foreign raylib;
 GetFrameTime :: () -> float #foreign raylib;
 GetTime :: () -> float64 #foreign raylib;
+GetFPS :: () -> s32 #foreign raylib;
+
+// Custom frame control functions
+// NOTE: Those functions are intended for advance users that want full control over the frame processing
+// By default EndDrawing() does this job: draws everything + SwapScreenBuffer() + manage frame timing + PollInputEvents()
+// To avoid that behaviour and control frame processes manually, enable in config.h: SUPPORT_CUSTOM_FRAME_CONTROL
+SwapScreenBuffer :: () -> void #foreign raylib;
+PollInputEvents :: () -> void #foreign raylib;
+WaitTime :: (seconds: float64) -> void #foreign raylib;
+
+// Random values generation functions
+SetRandomSeed :: (seed: u32) -> void #foreign raylib;
+GetRandomValue :: (min: s32, max: s32) -> s32 #foreign raylib;
+LoadRandomSequence :: (count: u32, min: s32, max: s32) -> *s32 #foreign raylib;
+UnloadRandomSequence :: (sequence: *s32) -> void #foreign raylib;
 
 // Misc. functions
-GetRandomValue :: (min: s32, max: s32) -> s32 #foreign raylib;
-SetRandomSeed :: (seed: u32) -> void #foreign raylib;
 TakeScreenshot :: (fileName: *u8) -> void #foreign raylib;
 SetConfigFlags :: (flags: u32) -> void #foreign raylib;
+OpenURL :: (url: *u8) -> void #foreign raylib;
 
+// NOTE: Following functions implemented in module [utils]
+//------------------------------------------------------------------
 TraceLog_CFormat :: (logLevel: s32, text: *u8, __args: ..Any) -> void #foreign raylib "TraceLog";
 TraceLog :: (logLevel: s32, text: string, __args: ..Any) {
     push_allocator(temp);
@@ -1235,11 +1306,9 @@ TraceLog :: (logLevel: s32, text: string, __args: ..Any) {
     TraceLog_CFormat(logLevel, "%s", formatted_text.data);
 } @PrintLike
 SetTraceLogLevel :: (logLevel: s32) -> void #foreign raylib;
-MemAlloc :: (size: s32) -> *void #foreign raylib;
-MemRealloc :: (ptr: *void, size: s32) -> *void #foreign raylib;
+MemAlloc :: (size: u32) -> *void #foreign raylib;
+MemRealloc :: (ptr: *void, size: u32) -> *void #foreign raylib;
 MemFree :: (ptr: *void) -> void #foreign raylib;
-
-OpenURL :: (url: *u8) -> void #foreign raylib;
 
 // Set custom callbacks
 // WARNING: Callbacks setup is intended for advance users
@@ -1250,13 +1319,15 @@ SetLoadFileTextCallback :: (callback: LoadFileTextCallback) -> void #foreign ray
 SetSaveFileTextCallback :: (callback: SaveFileTextCallback) -> void #foreign raylib;
 
 // Files management functions
-LoadFileData :: (fileName: *u8, bytesRead: *u32) -> *u8 #foreign raylib;
+LoadFileData :: (fileName: *u8, dataSize: *s32) -> *u8 #foreign raylib;
 UnloadFileData :: (data: *u8) -> void #foreign raylib;
-SaveFileData :: (fileName: *u8, data: *void, bytesToWrite: u32) -> bool #foreign raylib;
-ExportDataAsCode :: (data: *u8, size: u32, fileName: *u8) -> bool #foreign raylib;
+SaveFileData :: (fileName: *u8, data: *void, dataSize: s32) -> bool #foreign raylib;
+ExportDataAsCode :: (data: *u8, dataSize: s32, fileName: *u8) -> bool #foreign raylib;
 LoadFileText :: (fileName: *u8) -> *u8 #foreign raylib;
 UnloadFileText :: (text: *u8) -> void #foreign raylib;
 SaveFileText :: (fileName: *u8, text: *u8) -> bool #foreign raylib;
+
+// File system functions
 FileExists :: (fileName: *u8) -> bool #foreign raylib;
 DirectoryExists :: (dirPath: *u8) -> bool #foreign raylib;
 IsFileExtension :: (fileName: *u8, ext: *u8) -> bool #foreign raylib;
@@ -1276,7 +1347,7 @@ UnloadDirectoryFiles :: (files: FilePathList) -> void #foreign raylib;
 IsFileDropped :: () -> bool #foreign raylib;
 LoadDroppedFiles :: () -> FilePathList #foreign raylib;
 UnloadDroppedFiles :: (files: FilePathList) -> void #foreign raylib;
-GetFileModTime :: (fileName: *u8) -> s64 #foreign raylib;
+GetFileModTime :: (fileName: *u8) -> s32 #foreign raylib;
 
 // Compression/Encoding functionality
 CompressData :: (data: *u8, dataSize: s32, compDataSize: *s32) -> *u8 #foreign raylib;
@@ -1284,14 +1355,25 @@ DecompressData :: (compData: *u8, compDataSize: s32, dataSize: *s32) -> *u8 #for
 EncodeDataBase64 :: (data: *u8, dataSize: s32, outputSize: *s32) -> *u8 #foreign raylib;
 DecodeDataBase64 :: (data: *u8, outputSize: *s32) -> *u8 #foreign raylib;
 
+// Automation events functionality
+LoadAutomationEventList :: (fileName: *u8) -> AutomationEventList #foreign raylib;
+UnloadAutomationEventList :: (list: *AutomationEventList) -> void #foreign raylib;
+ExportAutomationEventList :: (list: AutomationEventList, fileName: *u8) -> bool #foreign raylib;
+SetAutomationEventList :: (list: *AutomationEventList) -> void #foreign raylib;
+SetAutomationEventBaseFrame :: (frame: s32) -> void #foreign raylib;
+StartAutomationEventRecording :: () -> void #foreign raylib;
+StopAutomationEventRecording :: () -> void #foreign raylib;
+PlayAutomationEvent :: (event: AutomationEvent) -> void #foreign raylib;
+
 // Input-related functions: keyboard
 IsKeyPressed :: (key: s32) -> bool #foreign raylib;
+IsKeyPressedRepeat :: (key: s32) -> bool #foreign raylib;
 IsKeyDown :: (key: s32) -> bool #foreign raylib;
 IsKeyReleased :: (key: s32) -> bool #foreign raylib;
 IsKeyUp :: (key: s32) -> bool #foreign raylib;
-SetExitKey :: (key: s32) -> void #foreign raylib;
 GetKeyPressed :: () -> s32 #foreign raylib;
 GetCharPressed :: () -> s32 #foreign raylib;
+SetExitKey :: (key: s32) -> void #foreign raylib;
 
 // Input-related functions: gamepads
 IsGamepadAvailable :: (gamepad: s32) -> bool #foreign raylib;
@@ -1332,7 +1414,7 @@ GetTouchPointCount :: () -> s32 #foreign raylib;
 // Gestures and Touch Handling Functions (Module: rgestures)
 //------------------------------------------------------------------------------------
 SetGesturesEnabled :: (flags: u32) -> void #foreign raylib;
-IsGestureDetected :: (gesture: s32) -> bool #foreign raylib;
+IsGestureDetected :: (gesture: u32) -> bool #foreign raylib;
 GetGestureDetected :: () -> s32 #foreign raylib;
 GetGestureHoldDuration :: () -> float #foreign raylib;
 GetGestureDragVector :: () -> Vector2 #foreign raylib;
@@ -1343,13 +1425,8 @@ GetGesturePinchAngle :: () -> float #foreign raylib;
 //------------------------------------------------------------------------------------
 // Camera System Functions (Module: rcamera)
 //------------------------------------------------------------------------------------
-SetCameraMode :: (camera: Camera, mode: s32) -> void #foreign raylib;
-UpdateCamera :: (camera: *Camera) -> void #foreign raylib;
-
-SetCameraPanControl :: (keyPan: s32) -> void #foreign raylib;
-SetCameraAltControl :: (keyAlt: s32) -> void #foreign raylib;
-SetCameraSmoothZoomControl :: (keySmoothZoom: s32) -> void #foreign raylib;
-SetCameraMoveControls :: (keyFront: s32, keyBack: s32, keyRight: s32, keyLeft: s32, keyUp: s32, keyDown: s32) -> void #foreign raylib;
+UpdateCamera :: (camera: *Camera, mode: s32) -> void #foreign raylib;
+UpdateCameraPro :: (camera: *Camera, movement: Vector3, rotation: Vector3, zoom: float) -> void #foreign raylib;
 
 //------------------------------------------------------------------------------------
 // Basic Shapes Drawing Functions (Module: shapes)
@@ -1365,16 +1442,15 @@ DrawPixelV :: (position: Vector2, color: Color) -> void #foreign raylib;
 DrawLine :: (startPosX: s32, startPosY: s32, endPosX: s32, endPosY: s32, color: Color) -> void #foreign raylib;
 DrawLineV :: (startPos: Vector2, endPos: Vector2, color: Color) -> void #foreign raylib;
 DrawLineEx :: (startPos: Vector2, endPos: Vector2, thick: float, color: Color) -> void #foreign raylib;
-DrawLineBezier :: (startPos: Vector2, endPos: Vector2, thick: float, color: Color) -> void #foreign raylib;
-DrawLineBezierQuad :: (startPos: Vector2, endPos: Vector2, controlPos: Vector2, thick: float, color: Color) -> void #foreign raylib;
-DrawLineBezierCubic :: (startPos: Vector2, endPos: Vector2, startControlPos: Vector2, endControlPos: Vector2, thick: float, color: Color) -> void #foreign raylib;
 DrawLineStrip :: (points: *Vector2, pointCount: s32, color: Color) -> void #foreign raylib;
+DrawLineBezier :: (startPos: Vector2, endPos: Vector2, thick: float, color: Color) -> void #foreign raylib;
 DrawCircle :: (centerX: s32, centerY: s32, radius: float, color: Color) -> void #foreign raylib;
 DrawCircleSector :: (center: Vector2, radius: float, startAngle: float, endAngle: float, segments: s32, color: Color) -> void #foreign raylib;
 DrawCircleSectorLines :: (center: Vector2, radius: float, startAngle: float, endAngle: float, segments: s32, color: Color) -> void #foreign raylib;
 DrawCircleGradient :: (centerX: s32, centerY: s32, radius: float, color1: Color, color2: Color) -> void #foreign raylib;
 DrawCircleV :: (center: Vector2, radius: float, color: Color) -> void #foreign raylib;
 DrawCircleLines :: (centerX: s32, centerY: s32, radius: float, color: Color) -> void #foreign raylib;
+DrawCircleLinesV :: (center: Vector2, radius: float, color: Color) -> void #foreign raylib;
 DrawEllipse :: (centerX: s32, centerY: s32, radiusH: float, radiusV: float, color: Color) -> void #foreign raylib;
 DrawEllipseLines :: (centerX: s32, centerY: s32, radiusH: float, radiusV: float, color: Color) -> void #foreign raylib;
 DrawRing :: (center: Vector2, innerRadius: float, outerRadius: float, startAngle: float, endAngle: float, segments: s32, color: Color) -> void #foreign raylib;
@@ -1398,6 +1474,25 @@ DrawPoly :: (center: Vector2, sides: s32, radius: float, rotation: float, color:
 DrawPolyLines :: (center: Vector2, sides: s32, radius: float, rotation: float, color: Color) -> void #foreign raylib;
 DrawPolyLinesEx :: (center: Vector2, sides: s32, radius: float, rotation: float, lineThick: float, color: Color) -> void #foreign raylib;
 
+// Splines drawing functions
+DrawSplineLinear :: (points: *Vector2, pointCount: s32, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineBasis :: (points: *Vector2, pointCount: s32, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineCatmullRom :: (points: *Vector2, pointCount: s32, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineBezierQuadratic :: (points: *Vector2, pointCount: s32, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineBezierCubic :: (points: *Vector2, pointCount: s32, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineSegmentLinear :: (p1: Vector2, p2: Vector2, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineSegmentBasis :: (p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineSegmentCatmullRom :: (p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineSegmentBezierQuadratic :: (p1: Vector2, c2: Vector2, p3: Vector2, thick: float, color: Color) -> void #foreign raylib;
+DrawSplineSegmentBezierCubic :: (p1: Vector2, c2: Vector2, c3: Vector2, p4: Vector2, thick: float, color: Color) -> void #foreign raylib;
+
+// Spline segment point evaluation functions, for a given t [0.0f .. 1.0f]
+GetSplinePointLinear :: (startPos: Vector2, endPos: Vector2, t: float) -> Vector2 #foreign raylib;
+GetSplinePointBasis :: (p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, t: float) -> Vector2 #foreign raylib;
+GetSplinePointCatmullRom :: (p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2, t: float) -> Vector2 #foreign raylib;
+GetSplinePointBezierQuad :: (p1: Vector2, c2: Vector2, p3: Vector2, t: float) -> Vector2 #foreign raylib;
+GetSplinePointBezierCubic :: (p1: Vector2, c2: Vector2, c3: Vector2, p4: Vector2, t: float) -> Vector2 #foreign raylib;
+
 // Basic shapes collision detection functions
 CheckCollisionRecs :: (rec1: Rectangle, rec2: Rectangle) -> bool #foreign raylib;
 CheckCollisionCircles :: (center1: Vector2, radius1: float, center2: Vector2, radius2: float) -> bool #foreign raylib;
@@ -1405,30 +1500,36 @@ CheckCollisionCircleRec :: (center: Vector2, radius: float, rec: Rectangle) -> b
 CheckCollisionPointRec :: (point: Vector2, rec: Rectangle) -> bool #foreign raylib;
 CheckCollisionPointCircle :: (point: Vector2, center: Vector2, radius: float) -> bool #foreign raylib;
 CheckCollisionPointTriangle :: (point: Vector2, p1: Vector2, p2: Vector2, p3: Vector2) -> bool #foreign raylib;
+CheckCollisionPointPoly :: (point: Vector2, points: *Vector2, pointCount: s32) -> bool #foreign raylib;
 CheckCollisionLines :: (startPos1: Vector2, endPos1: Vector2, startPos2: Vector2, endPos2: Vector2, collisionPoint: *Vector2) -> bool #foreign raylib;
 CheckCollisionPointLine :: (point: Vector2, p1: Vector2, p2: Vector2, threshold: s32) -> bool #foreign raylib;
 GetCollisionRec :: (rec1: Rectangle, rec2: Rectangle) -> Rectangle #foreign raylib;
 
 // Image loading functions
-// NOTE: This functions do not require GPU access
+// NOTE: These functions do not require GPU access
 LoadImage :: (fileName: *u8) -> Image #foreign raylib;
 LoadImageRaw :: (fileName: *u8, width: s32, height: s32, format: s32, headerSize: s32) -> Image #foreign raylib;
+LoadImageSvg :: (fileNameOrString: *u8, width: s32, height: s32) -> Image #foreign raylib;
 LoadImageAnim :: (fileName: *u8, frames: *s32) -> Image #foreign raylib;
 LoadImageFromMemory :: (fileType: *u8, fileData: *u8, dataSize: s32) -> Image #foreign raylib;
 LoadImageFromTexture :: (texture: Texture2D) -> Image #foreign raylib;
 LoadImageFromScreen :: () -> Image #foreign raylib;
+IsImageReady :: (image: Image) -> bool #foreign raylib;
 UnloadImage :: (image: Image) -> void #foreign raylib;
 ExportImage :: (image: Image, fileName: *u8) -> bool #foreign raylib;
+ExportImageToMemory :: (image: Image, fileType: *u8, fileSize: *s32) -> *u8 #foreign raylib;
 ExportImageAsCode :: (image: Image, fileName: *u8) -> bool #foreign raylib;
 
 // Image generation functions
 GenImageColor :: (width: s32, height: s32, color: Color) -> Image #foreign raylib;
-GenImageGradientV :: (width: s32, height: s32, top: Color, bottom: Color) -> Image #foreign raylib;
-GenImageGradientH :: (width: s32, height: s32, left: Color, right: Color) -> Image #foreign raylib;
+GenImageGradientLinear :: (width: s32, height: s32, direction: s32, start: Color, end: Color) -> Image #foreign raylib;
 GenImageGradientRadial :: (width: s32, height: s32, density: float, inner: Color, outer: Color) -> Image #foreign raylib;
+GenImageGradientSquare :: (width: s32, height: s32, density: float, inner: Color, outer: Color) -> Image #foreign raylib;
 GenImageChecked :: (width: s32, height: s32, checksX: s32, checksY: s32, col1: Color, col2: Color) -> Image #foreign raylib;
 GenImageWhiteNoise :: (width: s32, height: s32, factor: float) -> Image #foreign raylib;
+GenImagePerlinNoise :: (width: s32, height: s32, offsetX: s32, offsetY: s32, scale: float) -> Image #foreign raylib;
 GenImageCellular :: (width: s32, height: s32, tileSize: s32) -> Image #foreign raylib;
+GenImageText :: (width: s32, height: s32, text: *u8) -> Image #foreign raylib;
 
 // Image manipulation functions
 ImageCopy :: (image: Image) -> Image #foreign raylib;
@@ -1442,6 +1543,7 @@ ImageAlphaCrop :: (image: *Image, threshold: float) -> void #foreign raylib;
 ImageAlphaClear :: (image: *Image, color: Color, threshold: float) -> void #foreign raylib;
 ImageAlphaMask :: (image: *Image, alphaMask: Image) -> void #foreign raylib;
 ImageAlphaPremultiply :: (image: *Image) -> void #foreign raylib;
+ImageBlurGaussian :: (image: *Image, blurSize: s32) -> void #foreign raylib;
 ImageResize :: (image: *Image, newWidth: s32, newHeight: s32) -> void #foreign raylib;
 ImageResizeNN :: (image: *Image, newWidth: s32, newHeight: s32) -> void #foreign raylib;
 ImageResizeCanvas :: (image: *Image, newWidth: s32, newHeight: s32, offsetX: s32, offsetY: s32, fill: Color) -> void #foreign raylib;
@@ -1449,6 +1551,7 @@ ImageMipmaps :: (image: *Image) -> void #foreign raylib;
 ImageDither :: (image: *Image, rBpp: s32, gBpp: s32, bBpp: s32, aBpp: s32) -> void #foreign raylib;
 ImageFlipVertical :: (image: *Image) -> void #foreign raylib;
 ImageFlipHorizontal :: (image: *Image) -> void #foreign raylib;
+ImageRotate :: (image: *Image, degrees: s32) -> void #foreign raylib;
 ImageRotateCW :: (image: *Image) -> void #foreign raylib;
 ImageRotateCCW :: (image: *Image) -> void #foreign raylib;
 ImageColorTint :: (image: *Image, color: Color) -> void #foreign raylib;
@@ -1473,6 +1576,8 @@ ImageDrawLine :: (dst: *Image, startPosX: s32, startPosY: s32, endPosX: s32, end
 ImageDrawLineV :: (dst: *Image, start: Vector2, end: Vector2, color: Color) -> void #foreign raylib;
 ImageDrawCircle :: (dst: *Image, centerX: s32, centerY: s32, radius: s32, color: Color) -> void #foreign raylib;
 ImageDrawCircleV :: (dst: *Image, center: Vector2, radius: s32, color: Color) -> void #foreign raylib;
+ImageDrawCircleLines :: (dst: *Image, centerX: s32, centerY: s32, radius: s32, color: Color) -> void #foreign raylib;
+ImageDrawCircleLinesV :: (dst: *Image, center: Vector2, radius: s32, color: Color) -> void #foreign raylib;
 ImageDrawRectangle :: (dst: *Image, posX: s32, posY: s32, width: s32, height: s32, color: Color) -> void #foreign raylib;
 ImageDrawRectangleV :: (dst: *Image, position: Vector2, size: Vector2, color: Color) -> void #foreign raylib;
 ImageDrawRectangleRec :: (dst: *Image, rec: Rectangle, color: Color) -> void #foreign raylib;
@@ -1487,7 +1592,9 @@ LoadTexture :: (fileName: *u8) -> Texture2D #foreign raylib;
 LoadTextureFromImage :: (image: Image) -> Texture2D #foreign raylib;
 LoadTextureCubemap :: (image: Image, layout: s32) -> TextureCubemap #foreign raylib;
 LoadRenderTexture :: (width: s32, height: s32) -> RenderTexture2D #foreign raylib;
+IsTextureReady :: (texture: Texture2D) -> bool #foreign raylib;
 UnloadTexture :: (texture: Texture2D) -> void #foreign raylib;
+IsRenderTextureReady :: (target: RenderTexture2D) -> bool #foreign raylib;
 UnloadRenderTexture :: (target: RenderTexture2D) -> void #foreign raylib;
 UpdateTexture :: (texture: Texture2D, pixels: *void) -> void #foreign raylib;
 UpdateTextureRec :: (texture: Texture2D, rec: Rectangle, pixels: *void) -> void #foreign raylib;
@@ -1502,11 +1609,8 @@ DrawTexture :: (texture: Texture2D, posX: s32, posY: s32, tint: Color) -> void #
 DrawTextureV :: (texture: Texture2D, position: Vector2, tint: Color) -> void #foreign raylib;
 DrawTextureEx :: (texture: Texture2D, position: Vector2, rotation: float, scale: float, tint: Color) -> void #foreign raylib;
 DrawTextureRec :: (texture: Texture2D, source: Rectangle, position: Vector2, tint: Color) -> void #foreign raylib;
-DrawTextureQuad :: (texture: Texture2D, tiling: Vector2, offset: Vector2, quad: Rectangle, tint: Color) -> void #foreign raylib;
-DrawTextureTiled :: (texture: Texture2D, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: float, scale: float, tint: Color) -> void #foreign raylib;
 DrawTexturePro :: (texture: Texture2D, source: Rectangle, dest: Rectangle, origin: Vector2, rotation: float, tint: Color) -> void #foreign raylib;
 DrawTextureNPatch :: (texture: Texture2D, nPatchInfo: NPatchInfo, dest: Rectangle, origin: Vector2, rotation: float, tint: Color) -> void #foreign raylib;
-DrawTexturePoly :: (texture: Texture2D, center: Vector2, points: *Vector2, texcoords: *Vector2, pointCount: s32, tint: Color) -> void #foreign raylib;
 
 // Color/pixel related functions
 Fade :: (color: Color, alpha: float) -> Color #foreign raylib;
@@ -1515,6 +1619,9 @@ ColorNormalize :: (color: Color) -> Vector4 #foreign raylib;
 ColorFromNormalized :: (normalized: Vector4) -> Color #foreign raylib;
 ColorToHSV :: (color: Color) -> Vector3 #foreign raylib;
 ColorFromHSV :: (hue: float, saturation: float, value: float) -> Color #foreign raylib;
+ColorTint :: (color: Color, tint: Color) -> Color #foreign raylib;
+ColorBrightness :: (color: Color, factor: float) -> Color #foreign raylib;
+ColorContrast :: (color: Color, contrast: float) -> Color #foreign raylib;
 ColorAlpha :: (color: Color, alpha: float) -> Color #foreign raylib;
 ColorAlphaBlend :: (dst: Color, src: Color, tint: Color) -> Color #foreign raylib;
 GetColor :: (hexValue: u32) -> Color #foreign raylib;
@@ -1525,12 +1632,13 @@ GetPixelDataSize :: (width: s32, height: s32, format: s32) -> s32 #foreign rayli
 // Font loading/unloading functions
 GetFontDefault :: () -> Font #foreign raylib;
 LoadFont :: (fileName: *u8) -> Font #foreign raylib;
-LoadFontEx :: (fileName: *u8, fontSize: s32, fontChars: *s32, glyphCount: s32) -> Font #foreign raylib;
+LoadFontEx :: (fileName: *u8, fontSize: s32, codepoints: *s32, codepointCount: s32) -> Font #foreign raylib;
 LoadFontFromImage :: (image: Image, key: Color, firstChar: s32) -> Font #foreign raylib;
-LoadFontFromMemory :: (fileType: *u8, fileData: *u8, dataSize: s32, fontSize: s32, fontChars: *s32, glyphCount: s32) -> Font #foreign raylib;
-LoadFontData :: (fileData: *u8, dataSize: s32, fontSize: s32, fontChars: *s32, glyphCount: s32, type: s32) -> *GlyphInfo #foreign raylib;
-GenImageFontAtlas :: (chars: *GlyphInfo, recs: **Rectangle, glyphCount: s32, fontSize: s32, padding: s32, packMethod: s32) -> Image #foreign raylib;
-UnloadFontData :: (chars: *GlyphInfo, glyphCount: s32) -> void #foreign raylib;
+LoadFontFromMemory :: (fileType: *u8, fileData: *u8, dataSize: s32, fontSize: s32, codepoints: *s32, codepointCount: s32) -> Font #foreign raylib;
+IsFontReady :: (font: Font) -> bool #foreign raylib;
+LoadFontData :: (fileData: *u8, dataSize: s32, fontSize: s32, codepoints: *s32, codepointCount: s32, type: s32) -> *GlyphInfo #foreign raylib;
+GenImageFontAtlas :: (glyphs: *GlyphInfo, glyphRecs: **Rectangle, glyphCount: s32, fontSize: s32, padding: s32, packMethod: s32) -> Image #foreign raylib;
+UnloadFontData :: (glyphs: *GlyphInfo, glyphCount: s32) -> void #foreign raylib;
 UnloadFont :: (font: Font) -> void #foreign raylib;
 ExportFontAsCode :: (font: Font, fileName: *u8) -> bool #foreign raylib;
 
@@ -1540,9 +1648,10 @@ DrawText :: (text: *u8, posX: s32, posY: s32, fontSize: s32, color: Color) -> vo
 DrawTextEx :: (font: Font, text: *u8, position: Vector2, fontSize: float, spacing: float, tint: Color) -> void #foreign raylib;
 DrawTextPro :: (font: Font, text: *u8, position: Vector2, origin: Vector2, rotation: float, fontSize: float, spacing: float, tint: Color) -> void #foreign raylib;
 DrawTextCodepoint :: (font: Font, codepoint: s32, position: Vector2, fontSize: float, tint: Color) -> void #foreign raylib;
-DrawTextCodepoints :: (font: Font, codepoints: *s32, count: s32, position: Vector2, fontSize: float, spacing: float, tint: Color) -> void #foreign raylib;
+DrawTextCodepoints :: (font: Font, codepoints: *s32, codepointCount: s32, position: Vector2, fontSize: float, spacing: float, tint: Color) -> void #foreign raylib;
 
 // Text font info functions
+SetTextLineSpacing :: (spacing: s32) -> void #foreign raylib;
 MeasureText :: (text: *u8, fontSize: s32) -> s32 #foreign raylib;
 MeasureTextEx :: (font: Font, text: *u8, fontSize: float, spacing: float) -> Vector2 #foreign raylib;
 GetGlyphIndex :: (font: Font, codepoint: s32) -> s32 #foreign raylib;
@@ -1550,12 +1659,15 @@ GetGlyphInfo :: (font: Font, codepoint: s32) -> GlyphInfo #foreign raylib;
 GetGlyphAtlasRec :: (font: Font, codepoint: s32) -> Rectangle #foreign raylib;
 
 // Text codepoints management functions (unicode characters)
+LoadUTF8 :: (codepoints: *s32, length: s32) -> *u8 #foreign raylib;
+UnloadUTF8 :: (text: *u8) -> void #foreign raylib;
 LoadCodepoints :: (text: *u8, count: *s32) -> *s32 #foreign raylib;
 UnloadCodepoints :: (codepoints: *s32) -> void #foreign raylib;
 GetCodepointCount :: (text: *u8) -> s32 #foreign raylib;
-GetCodepoint :: (text: *u8, bytesProcessed: *s32) -> s32 #foreign raylib;
-CodepointToUTF8 :: (codepoint: s32, byteSize: *s32) -> *u8 #foreign raylib;
-TextCodepointsToUTF8 :: (codepoints: *s32, length: s32) -> *u8 #foreign raylib;
+GetCodepoint :: (text: *u8, codepointSize: *s32) -> s32 #foreign raylib;
+GetCodepointNext :: (text: *u8, codepointSize: *s32) -> s32 #foreign raylib;
+GetCodepointPrevious :: (text: *u8, codepointSize: *s32) -> s32 #foreign raylib;
+CodepointToUTF8 :: (codepoint: s32, utf8Size: *s32) -> *u8 #foreign raylib;
 
 // Text strings management functions (no UTF-8 strings, only byte chars)
 // NOTE: Some strings allocate memory internally for returned strings, just be careful!
@@ -1593,8 +1705,6 @@ DrawCube :: (position: Vector3, width: float, height: float, length: float, colo
 DrawCubeV :: (position: Vector3, size: Vector3, color: Color) -> void #foreign raylib;
 DrawCubeWires :: (position: Vector3, width: float, height: float, length: float, color: Color) -> void #foreign raylib;
 DrawCubeWiresV :: (position: Vector3, size: Vector3, color: Color) -> void #foreign raylib;
-DrawCubeTexture :: (texture: Texture2D, position: Vector3, width: float, height: float, length: float, color: Color) -> void #foreign raylib;
-DrawCubeTextureRec :: (texture: Texture2D, source: Rectangle, position: Vector3, width: float, height: float, length: float, color: Color) -> void #foreign raylib;
 DrawSphere :: (centerPos: Vector3, radius: float, color: Color) -> void #foreign raylib;
 DrawSphereEx :: (centerPos: Vector3, radius: float, rings: s32, slices: s32, color: Color) -> void #foreign raylib;
 DrawSphereWires :: (centerPos: Vector3, radius: float, rings: s32, slices: s32, color: Color) -> void #foreign raylib;
@@ -1602,6 +1712,8 @@ DrawCylinder :: (position: Vector3, radiusTop: float, radiusBottom: float, heigh
 DrawCylinderEx :: (startPos: Vector3, endPos: Vector3, startRadius: float, endRadius: float, sides: s32, color: Color) -> void #foreign raylib;
 DrawCylinderWires :: (position: Vector3, radiusTop: float, radiusBottom: float, height: float, slices: s32, color: Color) -> void #foreign raylib;
 DrawCylinderWiresEx :: (startPos: Vector3, endPos: Vector3, startRadius: float, endRadius: float, sides: s32, color: Color) -> void #foreign raylib;
+DrawCapsule :: (startPos: Vector3, endPos: Vector3, radius: float, slices: s32, rings: s32, color: Color) -> void #foreign raylib;
+DrawCapsuleWires :: (startPos: Vector3, endPos: Vector3, radius: float, slices: s32, rings: s32, color: Color) -> void #foreign raylib;
 DrawPlane :: (centerPos: Vector3, size: Vector2, color: Color) -> void #foreign raylib;
 DrawRay :: (ray: Ray, color: Color) -> void #foreign raylib;
 DrawGrid :: (slices: s32, spacing: float) -> void #foreign raylib;
@@ -1609,8 +1721,8 @@ DrawGrid :: (slices: s32, spacing: float) -> void #foreign raylib;
 // Model management functions
 LoadModel :: (fileName: *u8) -> Model #foreign raylib;
 LoadModelFromMesh :: (mesh: Mesh) -> Model #foreign raylib;
+IsModelReady :: (model: Model) -> bool #foreign raylib;
 UnloadModel :: (model: Model) -> void #foreign raylib;
-UnloadModelKeepMeshes :: (model: Model) -> void #foreign raylib;
 GetModelBoundingBox :: (model: Model) -> BoundingBox #foreign raylib;
 
 // Model drawing functions
@@ -1649,15 +1761,16 @@ GenMeshCubicmap :: (cubicmap: Image, cubeSize: Vector3) -> Mesh #foreign raylib;
 // Material loading/unloading functions
 LoadMaterials :: (fileName: *u8, materialCount: *s32) -> *Material #foreign raylib;
 LoadMaterialDefault :: () -> Material #foreign raylib;
+IsMaterialReady :: (material: Material) -> bool #foreign raylib;
 UnloadMaterial :: (material: Material) -> void #foreign raylib;
 SetMaterialTexture :: (material: *Material, mapType: s32, texture: Texture2D) -> void #foreign raylib;
 SetModelMeshMaterial :: (model: *Model, meshId: s32, materialId: s32) -> void #foreign raylib;
 
 // Model animations loading/unloading functions
-LoadModelAnimations :: (fileName: *u8, animCount: *u32) -> *ModelAnimation #foreign raylib;
+LoadModelAnimations :: (fileName: *u8, animCount: *s32) -> *ModelAnimation #foreign raylib;
 UpdateModelAnimation :: (model: Model, anim: ModelAnimation, frame: s32) -> void #foreign raylib;
 UnloadModelAnimation :: (anim: ModelAnimation) -> void #foreign raylib;
-UnloadModelAnimations :: (animations: *ModelAnimation, count: u32) -> void #foreign raylib;
+UnloadModelAnimations :: (animations: *ModelAnimation, animCount: s32) -> void #foreign raylib;
 IsModelAnimationValid :: (model: Model, anim: ModelAnimation) -> bool #foreign raylib;
 
 // Collision detection functions
@@ -1680,15 +1793,20 @@ InitAudioDevice :: () -> void #foreign raylib;
 CloseAudioDevice :: () -> void #foreign raylib;
 IsAudioDeviceReady :: () -> bool #foreign raylib;
 SetMasterVolume :: (volume: float) -> void #foreign raylib;
+GetMasterVolume :: () -> float #foreign raylib;
 
 // Wave/Sound loading/unloading functions
 LoadWave :: (fileName: *u8) -> Wave #foreign raylib;
 LoadWaveFromMemory :: (fileType: *u8, fileData: *u8, dataSize: s32) -> Wave #foreign raylib;
+IsWaveReady :: (wave: Wave) -> bool #foreign raylib;
 LoadSound :: (fileName: *u8) -> Sound #foreign raylib;
 LoadSoundFromWave :: (wave: Wave) -> Sound #foreign raylib;
+LoadSoundAlias :: (source: Sound) -> Sound #foreign raylib;
+IsSoundReady :: (sound: Sound) -> bool #foreign raylib;
 UpdateSound :: (sound: Sound, data: *void, sampleCount: s32) -> void #foreign raylib;
 UnloadWave :: (wave: Wave) -> void #foreign raylib;
 UnloadSound :: (sound: Sound) -> void #foreign raylib;
+UnloadSoundAlias :: (alias: Sound) -> void #foreign raylib;
 ExportWave :: (wave: Wave, fileName: *u8) -> bool #foreign raylib;
 ExportWaveAsCode :: (wave: Wave, fileName: *u8) -> bool #foreign raylib;
 
@@ -1697,9 +1815,6 @@ PlaySound :: (sound: Sound) -> void #foreign raylib;
 StopSound :: (sound: Sound) -> void #foreign raylib;
 PauseSound :: (sound: Sound) -> void #foreign raylib;
 ResumeSound :: (sound: Sound) -> void #foreign raylib;
-PlaySoundMulti :: (sound: Sound) -> void #foreign raylib;
-StopSoundMulti :: () -> void #foreign raylib;
-GetSoundsPlaying :: () -> s32 #foreign raylib;
 IsSoundPlaying :: (sound: Sound) -> bool #foreign raylib;
 SetSoundVolume :: (sound: Sound, volume: float) -> void #foreign raylib;
 SetSoundPitch :: (sound: Sound, pitch: float) -> void #foreign raylib;
@@ -1713,6 +1828,7 @@ UnloadWaveSamples :: (samples: *float) -> void #foreign raylib;
 // Music management functions
 LoadMusicStream :: (fileName: *u8) -> Music #foreign raylib;
 LoadMusicStreamFromMemory :: (fileType: *u8, data: *u8, dataSize: s32) -> Music #foreign raylib;
+IsMusicReady :: (music: Music) -> bool #foreign raylib;
 UnloadMusicStream :: (music: Music) -> void #foreign raylib;
 PlayMusicStream :: (music: Music) -> void #foreign raylib;
 IsMusicStreamPlaying :: (music: Music) -> bool #foreign raylib;
@@ -1729,6 +1845,7 @@ GetMusicTimePlayed :: (music: Music) -> float #foreign raylib;
 
 // AudioStream management functions
 LoadAudioStream :: (sampleRate: u32, sampleSize: u32, channels: u32) -> AudioStream #foreign raylib;
+IsAudioStreamReady :: (stream: AudioStream) -> bool #foreign raylib;
 UnloadAudioStream :: (stream: AudioStream) -> void #foreign raylib;
 UpdateAudioStream :: (stream: AudioStream, data: *void, frameCount: s32) -> void #foreign raylib;
 IsAudioStreamProcessed :: (stream: AudioStream) -> bool #foreign raylib;
@@ -1745,6 +1862,9 @@ SetAudioStreamCallback :: (stream: AudioStream, callback: AudioCallback) -> void
 
 AttachAudioStreamProcessor :: (stream: AudioStream, processor: AudioCallback) -> void #foreign raylib;
 DetachAudioStreamProcessor :: (stream: AudioStream, processor: AudioCallback) -> void #foreign raylib;
+
+AttachAudioMixedProcessor :: (processor: AudioCallback) -> void #foreign raylib;
+DetachAudioMixedProcessor :: (processor: AudioCallback) -> void #foreign raylib;
 
 // NOTE: Helper types to be used instead of array return types for *ToFloat functions
 float3 :: struct {
@@ -1806,8 +1926,14 @@ Vector2Distance :: (v1: Vector2, v2: Vector2) -> float #foreign raylib;
 // Calculate square distance between two vectors
 Vector2DistanceSqr :: (v1: Vector2, v2: Vector2) -> float #foreign raylib;
 
-// Calculate angle from two vectors
+// Calculate angle between two vectors
+// NOTE: Angle is calculated from origin point (0, 0)
 Vector2Angle :: (v1: Vector2, v2: Vector2) -> float #foreign raylib;
+
+// Calculate angle defined by a two vectors line
+// NOTE: Parameters need to be normalized
+// Current implementation should be aligned with glm::angle
+Vector2LineAngle :: (start: Vector2, end: Vector2) -> float #foreign raylib;
 
 // Scale vector (multiply by value)
 Vector2Scale :: (v: Vector2, scale: float) -> Vector2 #foreign raylib;
@@ -1909,6 +2035,12 @@ Vector3Divide :: (v1: Vector3, v2: Vector3) -> Vector3 #foreign raylib;
 // Normalize provided vector
 Vector3Normalize :: (v: Vector3) -> Vector3 #foreign raylib;
 
+//Calculate the projection of the vector v1 on to v2
+Vector3Project :: (v1: Vector3, v2: Vector3) -> Vector3 #foreign raylib;
+
+//Calculate the rejection of the vector v1 on to v2
+Vector3Reject :: (v1: Vector3, v2: Vector3) -> Vector3 #foreign raylib;
+
 // Orthonormalize provided vectors
 // Makes vectors normalized and orthogonal to each other
 // Gram-Schmidt function implementation
@@ -1959,12 +2091,11 @@ Vector3ClampValue :: (v: Vector3, min: float, max: float) -> Vector3 #foreign ra
 // Check whether two given vectors are almost equal
 Vector3Equals :: (p: Vector3, q: Vector3) -> s32 #foreign raylib;
 
-// Compute the direction of a refracted ray where v specifies the
-// normalized direction of the incoming ray, n specifies the
-// normalized normal vector of the interface of two optical media,
-// and r specifies the ratio of the refractive index of the medium
-// from where the ray comes to the refractive index of the medium
-// on the other side of the surface
+// Compute the direction of a refracted ray
+// v: normalized direction of the incoming ray
+// n: normalized normal vector of the interface of two optical media
+// r: ratio of the refractive index of the medium from where the ray comes
+//    to the refractive index of the medium on the other side of the surface
 Vector3Refract :: (v: Vector3, n: Vector3, r: float) -> Vector3 #foreign raylib;
 
 // Compute matrix determinant
@@ -2027,10 +2158,10 @@ MatrixFrustum :: (left: float64, right: float64, bottom: float64, top: float64, 
 
 // Get perspective projection matrix
 // NOTE: Fovy angle must be provided in radians
-MatrixPerspective :: (fovy: float64, aspect: float64, near: float64, far: float64) -> Matrix #foreign raylib;
+MatrixPerspective :: (fovY: float64, aspect: float64, nearPlane: float64, farPlane: float64) -> Matrix #foreign raylib;
 
 // Get orthographic projection matrix
-MatrixOrtho :: (left: float64, right: float64, bottom: float64, top: float64, near: float64, far: float64) -> Matrix #foreign raylib;
+MatrixOrtho :: (left: float64, right: float64, bottom: float64, top: float64, nearPlane: float64, farPlane: float64) -> Matrix #foreign raylib;
 
 // Get camera look-at matrix (view matrix)
 MatrixLookAt :: (eye: Vector3, target: Vector3, up: Vector3) -> Matrix #foreign raylib;
@@ -2110,67 +2241,6 @@ QuaternionTransform :: (q: Quaternion, mat: Matrix) -> Quaternion #foreign rayli
 // Check whether two given quaternions are almost equal
 QuaternionEquals :: (p: Quaternion, q: Quaternion) -> s32 #foreign raylib;
 
-//----------------------------------------------------------------------------------
-// Types and Structures Definition
-//----------------------------------------------------------------------------------
-rlGlVersion :: enum u32 {
-    _11   :: 1;
-    _21   :: 2;
-    _33   :: 3;
-    _43   :: 4;
-    ES_20 :: 5;
-
-    OPENGL_11    :: _11;
-    OPENGL_21    :: _21;
-    OPENGL_33    :: _33;
-    OPENGL_43    :: _43;
-    OPENGL_ES_20 :: ES_20;
-}
-
-rlFramebufferAttachType :: enum u32 {
-    COLOR_CHANNEL0 :: 0;
-    COLOR_CHANNEL1 :: 1;
-    COLOR_CHANNEL2 :: 2;
-    COLOR_CHANNEL3 :: 3;
-    COLOR_CHANNEL4 :: 4;
-    COLOR_CHANNEL5 :: 5;
-    COLOR_CHANNEL6 :: 6;
-    COLOR_CHANNEL7 :: 7;
-    DEPTH          :: 100;
-    STENCIL        :: 200;
-
-    RL_ATTACHMENT_COLOR_CHANNEL0 :: COLOR_CHANNEL0;
-    RL_ATTACHMENT_COLOR_CHANNEL1 :: COLOR_CHANNEL1;
-    RL_ATTACHMENT_COLOR_CHANNEL2 :: COLOR_CHANNEL2;
-    RL_ATTACHMENT_COLOR_CHANNEL3 :: COLOR_CHANNEL3;
-    RL_ATTACHMENT_COLOR_CHANNEL4 :: COLOR_CHANNEL4;
-    RL_ATTACHMENT_COLOR_CHANNEL5 :: COLOR_CHANNEL5;
-    RL_ATTACHMENT_COLOR_CHANNEL6 :: COLOR_CHANNEL6;
-    RL_ATTACHMENT_COLOR_CHANNEL7 :: COLOR_CHANNEL7;
-    RL_ATTACHMENT_DEPTH          :: DEPTH;
-    RL_ATTACHMENT_STENCIL        :: STENCIL;
-}
-
-rlFramebufferAttachTextureType :: enum u32 {
-    CUBEMAP_POSITIVE_X :: 0;
-    CUBEMAP_NEGATIVE_X :: 1;
-    CUBEMAP_POSITIVE_Y :: 2;
-    CUBEMAP_NEGATIVE_Y :: 3;
-    CUBEMAP_POSITIVE_Z :: 4;
-    CUBEMAP_NEGATIVE_Z :: 5;
-    TEXTURE2D          :: 100;
-    RENDERBUFFER       :: 200;
-
-    RL_ATTACHMENT_CUBEMAP_POSITIVE_X :: CUBEMAP_POSITIVE_X;
-    RL_ATTACHMENT_CUBEMAP_NEGATIVE_X :: CUBEMAP_NEGATIVE_X;
-    RL_ATTACHMENT_CUBEMAP_POSITIVE_Y :: CUBEMAP_POSITIVE_Y;
-    RL_ATTACHMENT_CUBEMAP_NEGATIVE_Y :: CUBEMAP_NEGATIVE_Y;
-    RL_ATTACHMENT_CUBEMAP_POSITIVE_Z :: CUBEMAP_POSITIVE_Z;
-    RL_ATTACHMENT_CUBEMAP_NEGATIVE_Z :: CUBEMAP_NEGATIVE_Z;
-    RL_ATTACHMENT_TEXTURE2D          :: TEXTURE2D;
-    RL_ATTACHMENT_RENDERBUFFER       :: RENDERBUFFER;
-}
-
 // Dynamic vertex buffers (position + texcoords + colors + indices arrays)
 rlVertexBuffer :: struct {
     elementCount: s32; // Number of elements in the buffer (QUADS)
@@ -2208,9 +2278,26 @@ rlRenderBatch :: struct {
     currentDepth:  float; // Current depth value for next draw
 }
 
+// OpenGL version
+rlGlVersion :: enum s32 {
+    _11   :: 1;
+    _21   :: 2;
+    _33   :: 3;
+    _43   :: 4;
+    ES_20 :: 5;
+    ES_30 :: 6;
+
+    RL_OPENGL_11    :: _11;
+    RL_OPENGL_21    :: _21;
+    RL_OPENGL_33    :: _33;
+    RL_OPENGL_43    :: _43;
+    RL_OPENGL_ES_20 :: ES_20;
+    RL_OPENGL_ES_30 :: ES_30;
+}
+
 // Trace log level
 // NOTE: Organized by priority level
-rlTraceLogLevel :: enum u32 {
+rlTraceLogLevel :: enum s32 {
     ALL     :: 0;
     TRACE   :: 1;
     DEBUG   :: 2;
@@ -2230,8 +2317,9 @@ rlTraceLogLevel :: enum u32 {
     RL_LOG_NONE    :: NONE;
 }
 
-// Texture formats (support depends on OpenGL version)
-rlPixelFormat :: enum u32 {
+// Texture pixel formats
+// NOTE: Support depends on OpenGL version
+rlPixelFormat :: enum s32 {
     UNCOMPRESSED_GRAYSCALE    :: 1;
     UNCOMPRESSED_GRAY_ALPHA   :: 2;
     UNCOMPRESSED_R5G6B5       :: 3;
@@ -2242,17 +2330,20 @@ rlPixelFormat :: enum u32 {
     UNCOMPRESSED_R32          :: 8;
     UNCOMPRESSED_R32G32B32    :: 9;
     UNCOMPRESSED_R32G32B32A32 :: 10;
-    COMPRESSED_DXT1_RGB       :: 11;
-    COMPRESSED_DXT1_RGBA      :: 12;
-    COMPRESSED_DXT3_RGBA      :: 13;
-    COMPRESSED_DXT5_RGBA      :: 14;
-    COMPRESSED_ETC1_RGB       :: 15;
-    COMPRESSED_ETC2_RGB       :: 16;
-    COMPRESSED_ETC2_EAC_RGBA  :: 17;
-    COMPRESSED_PVRT_RGB       :: 18;
-    COMPRESSED_PVRT_RGBA      :: 19;
-    COMPRESSED_ASTC_4x4_RGBA  :: 20;
-    COMPRESSED_ASTC_8x8_RGBA  :: 21;
+    UNCOMPRESSED_R16          :: 11;
+    UNCOMPRESSED_R16G16B16    :: 12;
+    UNCOMPRESSED_R16G16B16A16 :: 13;
+    COMPRESSED_DXT1_RGB       :: 14;
+    COMPRESSED_DXT1_RGBA      :: 15;
+    COMPRESSED_DXT3_RGBA      :: 16;
+    COMPRESSED_DXT5_RGBA      :: 17;
+    COMPRESSED_ETC1_RGB       :: 18;
+    COMPRESSED_ETC2_RGB       :: 19;
+    COMPRESSED_ETC2_EAC_RGBA  :: 20;
+    COMPRESSED_PVRT_RGB       :: 21;
+    COMPRESSED_PVRT_RGBA      :: 22;
+    COMPRESSED_ASTC_4x4_RGBA  :: 23;
+    COMPRESSED_ASTC_8x8_RGBA  :: 24;
 
     RL_PIXELFORMAT_UNCOMPRESSED_GRAYSCALE    :: UNCOMPRESSED_GRAYSCALE;
     RL_PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA   :: UNCOMPRESSED_GRAY_ALPHA;
@@ -2264,6 +2355,9 @@ rlPixelFormat :: enum u32 {
     RL_PIXELFORMAT_UNCOMPRESSED_R32          :: UNCOMPRESSED_R32;
     RL_PIXELFORMAT_UNCOMPRESSED_R32G32B32    :: UNCOMPRESSED_R32G32B32;
     RL_PIXELFORMAT_UNCOMPRESSED_R32G32B32A32 :: UNCOMPRESSED_R32G32B32A32;
+    RL_PIXELFORMAT_UNCOMPRESSED_R16          :: UNCOMPRESSED_R16;
+    RL_PIXELFORMAT_UNCOMPRESSED_R16G16B16    :: UNCOMPRESSED_R16G16B16;
+    RL_PIXELFORMAT_UNCOMPRESSED_R16G16B16A16 :: UNCOMPRESSED_R16G16B16A16;
     RL_PIXELFORMAT_COMPRESSED_DXT1_RGB       :: COMPRESSED_DXT1_RGB;
     RL_PIXELFORMAT_COMPRESSED_DXT1_RGBA      :: COMPRESSED_DXT1_RGBA;
     RL_PIXELFORMAT_COMPRESSED_DXT3_RGBA      :: COMPRESSED_DXT3_RGBA;
@@ -2280,7 +2374,7 @@ rlPixelFormat :: enum u32 {
 // Texture parameters: filter mode
 // NOTE 1: Filtering considers mipmaps if available in the texture
 // NOTE 2: Filter is accordingly set for minification and magnification
-rlTextureFilter :: enum u32 {
+rlTextureFilter :: enum s32 {
     POINT           :: 0;
     BILINEAR        :: 1;
     TRILINEAR       :: 2;
@@ -2297,7 +2391,7 @@ rlTextureFilter :: enum u32 {
 }
 
 // Color blending modes (pre-defined)
-rlBlendMode :: enum u32 {
+rlBlendMode :: enum s32 {
     ALPHA             :: 0;
     ADDITIVE          :: 1;
     MULTIPLIED        :: 2;
@@ -2305,6 +2399,7 @@ rlBlendMode :: enum u32 {
     SUBTRACT_COLORS   :: 4;
     ALPHA_PREMULTIPLY :: 5;
     CUSTOM            :: 6;
+    CUSTOM_SEPARATE   :: 7;
 
     RL_BLEND_ALPHA             :: ALPHA;
     RL_BLEND_ADDITIVE          :: ADDITIVE;
@@ -2313,10 +2408,11 @@ rlBlendMode :: enum u32 {
     RL_BLEND_SUBTRACT_COLORS   :: SUBTRACT_COLORS;
     RL_BLEND_ALPHA_PREMULTIPLY :: ALPHA_PREMULTIPLY;
     RL_BLEND_CUSTOM            :: CUSTOM;
+    RL_BLEND_CUSTOM_SEPARATE   :: CUSTOM_SEPARATE;
 }
 
 // Shader location point type
-rlShaderLocationIndex :: enum u32 {
+rlShaderLocationIndex :: enum s32 {
     VERTEX_POSITION   :: 0;
     VERTEX_TEXCOORD01 :: 1;
     VERTEX_TEXCOORD02 :: 2;
@@ -2373,7 +2469,7 @@ rlShaderLocationIndex :: enum u32 {
 }
 
 // Shader uniform data type
-rlShaderUniformDataType :: enum u32 {
+rlShaderUniformDataType :: enum s32 {
     FLOAT     :: 0;
     VEC2      :: 1;
     VEC3      :: 2;
@@ -2396,7 +2492,7 @@ rlShaderUniformDataType :: enum u32 {
 }
 
 // Shader attribute data types
-rlShaderAttributeDataType :: enum u32 {
+rlShaderAttributeDataType :: enum s32 {
     FLOAT :: 0;
     VEC2  :: 1;
     VEC3  :: 2;
@@ -2406,6 +2502,62 @@ rlShaderAttributeDataType :: enum u32 {
     RL_SHADER_ATTRIB_VEC2  :: VEC2;
     RL_SHADER_ATTRIB_VEC3  :: VEC3;
     RL_SHADER_ATTRIB_VEC4  :: VEC4;
+}
+
+// Framebuffer attachment type
+// NOTE: By default up to 8 color channels defined, but it can be more
+rlFramebufferAttachType :: enum s32 {
+    COLOR_CHANNEL0 :: 0;
+    COLOR_CHANNEL1 :: 1;
+    COLOR_CHANNEL2 :: 2;
+    COLOR_CHANNEL3 :: 3;
+    COLOR_CHANNEL4 :: 4;
+    COLOR_CHANNEL5 :: 5;
+    COLOR_CHANNEL6 :: 6;
+    COLOR_CHANNEL7 :: 7;
+    DEPTH          :: 100;
+    STENCIL        :: 200;
+
+    RL_ATTACHMENT_COLOR_CHANNEL0 :: COLOR_CHANNEL0;
+    RL_ATTACHMENT_COLOR_CHANNEL1 :: COLOR_CHANNEL1;
+    RL_ATTACHMENT_COLOR_CHANNEL2 :: COLOR_CHANNEL2;
+    RL_ATTACHMENT_COLOR_CHANNEL3 :: COLOR_CHANNEL3;
+    RL_ATTACHMENT_COLOR_CHANNEL4 :: COLOR_CHANNEL4;
+    RL_ATTACHMENT_COLOR_CHANNEL5 :: COLOR_CHANNEL5;
+    RL_ATTACHMENT_COLOR_CHANNEL6 :: COLOR_CHANNEL6;
+    RL_ATTACHMENT_COLOR_CHANNEL7 :: COLOR_CHANNEL7;
+    RL_ATTACHMENT_DEPTH          :: DEPTH;
+    RL_ATTACHMENT_STENCIL        :: STENCIL;
+}
+
+// Framebuffer texture attachment type
+rlFramebufferAttachTextureType :: enum s32 {
+    CUBEMAP_POSITIVE_X :: 0;
+    CUBEMAP_NEGATIVE_X :: 1;
+    CUBEMAP_POSITIVE_Y :: 2;
+    CUBEMAP_NEGATIVE_Y :: 3;
+    CUBEMAP_POSITIVE_Z :: 4;
+    CUBEMAP_NEGATIVE_Z :: 5;
+    TEXTURE2D          :: 100;
+    RENDERBUFFER       :: 200;
+
+    RL_ATTACHMENT_CUBEMAP_POSITIVE_X :: CUBEMAP_POSITIVE_X;
+    RL_ATTACHMENT_CUBEMAP_NEGATIVE_X :: CUBEMAP_NEGATIVE_X;
+    RL_ATTACHMENT_CUBEMAP_POSITIVE_Y :: CUBEMAP_POSITIVE_Y;
+    RL_ATTACHMENT_CUBEMAP_NEGATIVE_Y :: CUBEMAP_NEGATIVE_Y;
+    RL_ATTACHMENT_CUBEMAP_POSITIVE_Z :: CUBEMAP_POSITIVE_Z;
+    RL_ATTACHMENT_CUBEMAP_NEGATIVE_Z :: CUBEMAP_NEGATIVE_Z;
+    RL_ATTACHMENT_TEXTURE2D          :: TEXTURE2D;
+    RL_ATTACHMENT_RENDERBUFFER       :: RENDERBUFFER;
+}
+
+// Face culling mode
+rlCullMode :: enum s32 {
+    FRONT :: 0;
+    BACK  :: 1;
+
+    RL_CULL_FACE_FRONT :: FRONT;
+    RL_CULL_FACE_BACK  :: BACK;
 }
 
 rlMatrixMode :: (mode: s32) -> void #foreign raylib;
@@ -2451,6 +2603,7 @@ rlDisableTexture :: () -> void #foreign raylib;
 rlEnableTextureCubemap :: (id: u32) -> void #foreign raylib;
 rlDisableTextureCubemap :: () -> void #foreign raylib;
 rlTextureParameters :: (id: u32, param: s32, value: s32) -> void #foreign raylib;
+rlCubemapParameters :: (id: u32, param: s32, value: s32) -> void #foreign raylib;
 
 // Shader state
 rlEnableShader :: (id: u32) -> void #foreign raylib;
@@ -2460,6 +2613,7 @@ rlDisableShader :: () -> void #foreign raylib;
 rlEnableFramebuffer :: (id: u32) -> void #foreign raylib;
 rlDisableFramebuffer :: () -> void #foreign raylib;
 rlActiveDrawBuffers :: (count: s32) -> void #foreign raylib;
+rlBlitFramebuffer :: (srcX: s32, srcY: s32, srcWidth: s32, srcHeight: s32, dstX: s32, dstY: s32, dstWidth: s32, dstHeight: s32, bufferMask: s32) -> void #foreign raylib;
 
 // General render state
 rlEnableColorBlend :: () -> void #foreign raylib;
@@ -2470,10 +2624,12 @@ rlEnableDepthMask :: () -> void #foreign raylib;
 rlDisableDepthMask :: () -> void #foreign raylib;
 rlEnableBackfaceCulling :: () -> void #foreign raylib;
 rlDisableBackfaceCulling :: () -> void #foreign raylib;
+rlSetCullFace :: (mode: s32) -> void #foreign raylib;
 rlEnableScissorTest :: () -> void #foreign raylib;
 rlDisableScissorTest :: () -> void #foreign raylib;
 rlScissor :: (x: s32, y: s32, width: s32, height: s32) -> void #foreign raylib;
 rlEnableWireMode :: () -> void #foreign raylib;
+rlEnablePointMode :: () -> void #foreign raylib;
 rlDisableWireMode :: () -> void #foreign raylib;
 rlSetLineWidth :: (width: float) -> void #foreign raylib;
 rlGetLineWidth :: () -> float #foreign raylib;
@@ -2488,6 +2644,7 @@ rlClearScreenBuffers :: () -> void #foreign raylib;
 rlCheckErrors :: () -> void #foreign raylib;
 rlSetBlendMode :: (mode: s32) -> void #foreign raylib;
 rlSetBlendFactors :: (glSrcFactor: s32, glDstFactor: s32, glEquation: s32) -> void #foreign raylib;
+rlSetBlendFactorsSeparate :: (glSrcRGB: s32, glDstRGB: s32, glSrcAlpha: s32, glDstAlpha: s32, glEqRGB: s32, glEqAlpha: s32) -> void #foreign raylib;
 
 //------------------------------------------------------------------------------------
 // Functions Declaration - rlgl functionality
@@ -2515,6 +2672,7 @@ rlDrawRenderBatch :: (batch: *rlRenderBatch) -> void #foreign raylib;
 rlSetRenderBatchActive :: (batch: *rlRenderBatch) -> void #foreign raylib;
 rlDrawRenderBatchActive :: () -> void #foreign raylib;
 rlCheckRenderBatchLimit :: (vCount: s32) -> bool #foreign raylib;
+
 rlSetTexture :: (id: u32) -> void #foreign raylib;
 
 // Vertex buffers management
@@ -2568,16 +2726,16 @@ rlLoadComputeShaderProgram :: (shaderId: u32) -> u32 #foreign raylib;
 rlComputeShaderDispatch :: (groupX: u32, groupY: u32, groupZ: u32) -> void #foreign raylib;
 
 // Shader buffer storage object management (ssbo)
-rlLoadShaderBuffer :: (size: u64, data: *void, usageHint: s32) -> u32 #foreign raylib;
+rlLoadShaderBuffer :: (size: u32, data: *void, usageHint: s32) -> u32 #foreign raylib;
 rlUnloadShaderBuffer :: (ssboId: u32) -> void #foreign raylib;
-rlUpdateShaderBufferElements :: (id: u32, data: *void, dataSize: u64, offset: u64) -> void #foreign raylib;
-rlGetShaderBufferSize :: (id: u32) -> u64 #foreign raylib;
-rlReadShaderBufferElements :: (id: u32, dest: *void, count: u64, offset: u64) -> void #foreign raylib;
+rlUpdateShaderBuffer :: (id: u32, data: *void, dataSize: u32, offset: u32) -> void #foreign raylib;
 rlBindShaderBuffer :: (id: u32, index: u32) -> void #foreign raylib;
+rlReadShaderBuffer :: (id: u32, dest: *void, count: u32, offset: u32) -> void #foreign raylib;
+rlCopyShaderBuffer :: (destId: u32, srcId: u32, destOffset: u32, srcOffset: u32, count: u32) -> void #foreign raylib;
+rlGetShaderBufferSize :: (id: u32) -> u32 #foreign raylib;
 
 // Buffer management
-rlCopyBuffersElements :: (destId: u32, srcId: u32, destOffset: u64, srcOffset: u64, count: u64) -> void #foreign raylib;
-rlBindImageTexture :: (id: u32, index: u32, format: u32, readonly: s32) -> void #foreign raylib;
+rlBindImageTexture :: (id: u32, index: u32, format: s32, readonly: bool) -> void #foreign raylib;
 
 // Matrix state management
 rlGetMatrixModelview :: () -> Matrix #foreign raylib;
@@ -2596,7 +2754,7 @@ rlLoadDrawQuad :: () -> void #foreign raylib;
 
 #scope_file
 
-#import "Basic"; // For assert
+#import "Basic"; // For assert, push_context
 
 
 #run {
@@ -2933,7 +3091,9 @@ rlLoadDrawQuad :: () -> void #foreign raylib;
         assert(size_of(type_of(ModelAnimation.bones)) == 8, "ModelAnimation.bones has unexpected size % instead of 8", size_of(type_of(ModelAnimation.bones)));
         assert(((cast(*void)(*instance.framePoses)) - cast(*void)(*instance)) == 16, "ModelAnimation.framePoses has unexpected offset % instead of 16", ((cast(*void)(*instance.framePoses)) - cast(*void)(*instance)));
         assert(size_of(type_of(ModelAnimation.framePoses)) == 8, "ModelAnimation.framePoses has unexpected size % instead of 8", size_of(type_of(ModelAnimation.framePoses)));
-        assert(size_of(ModelAnimation) == 24, "ModelAnimation has size % instead of 24", size_of(ModelAnimation));
+        assert(((cast(*void)(*instance.name)) - cast(*void)(*instance)) == 24, "ModelAnimation.name has unexpected offset % instead of 24", ((cast(*void)(*instance.name)) - cast(*void)(*instance)));
+        assert(size_of(type_of(ModelAnimation.name)) == 32, "ModelAnimation.name has unexpected size % instead of 32", size_of(type_of(ModelAnimation.name)));
+        assert(size_of(ModelAnimation) == 56, "ModelAnimation has size % instead of 56", size_of(ModelAnimation));
     }
 
     {
@@ -3076,6 +3236,28 @@ rlLoadDrawQuad :: () -> void #foreign raylib;
         assert(((cast(*void)(*instance.paths)) - cast(*void)(*instance)) == 8, "FilePathList.paths has unexpected offset % instead of 8", ((cast(*void)(*instance.paths)) - cast(*void)(*instance)));
         assert(size_of(type_of(FilePathList.paths)) == 8, "FilePathList.paths has unexpected size % instead of 8", size_of(type_of(FilePathList.paths)));
         assert(size_of(FilePathList) == 16, "FilePathList has size % instead of 16", size_of(FilePathList));
+    }
+
+    {
+        instance: AutomationEvent;
+        assert(((cast(*void)(*instance.frame)) - cast(*void)(*instance)) == 0, "AutomationEvent.frame has unexpected offset % instead of 0", ((cast(*void)(*instance.frame)) - cast(*void)(*instance)));
+        assert(size_of(type_of(AutomationEvent.frame)) == 4, "AutomationEvent.frame has unexpected size % instead of 4", size_of(type_of(AutomationEvent.frame)));
+        assert(((cast(*void)(*instance.type)) - cast(*void)(*instance)) == 4, "AutomationEvent.type has unexpected offset % instead of 4", ((cast(*void)(*instance.type)) - cast(*void)(*instance)));
+        assert(size_of(type_of(AutomationEvent.type)) == 4, "AutomationEvent.type has unexpected size % instead of 4", size_of(type_of(AutomationEvent.type)));
+        assert(((cast(*void)(*instance.params)) - cast(*void)(*instance)) == 8, "AutomationEvent.params has unexpected offset % instead of 8", ((cast(*void)(*instance.params)) - cast(*void)(*instance)));
+        assert(size_of(type_of(AutomationEvent.params)) == 16, "AutomationEvent.params has unexpected size % instead of 16", size_of(type_of(AutomationEvent.params)));
+        assert(size_of(AutomationEvent) == 24, "AutomationEvent has size % instead of 24", size_of(AutomationEvent));
+    }
+
+    {
+        instance: AutomationEventList;
+        assert(((cast(*void)(*instance.capacity)) - cast(*void)(*instance)) == 0, "AutomationEventList.capacity has unexpected offset % instead of 0", ((cast(*void)(*instance.capacity)) - cast(*void)(*instance)));
+        assert(size_of(type_of(AutomationEventList.capacity)) == 4, "AutomationEventList.capacity has unexpected size % instead of 4", size_of(type_of(AutomationEventList.capacity)));
+        assert(((cast(*void)(*instance.count)) - cast(*void)(*instance)) == 4, "AutomationEventList.count has unexpected offset % instead of 4", ((cast(*void)(*instance.count)) - cast(*void)(*instance)));
+        assert(size_of(type_of(AutomationEventList.count)) == 4, "AutomationEventList.count has unexpected size % instead of 4", size_of(type_of(AutomationEventList.count)));
+        assert(((cast(*void)(*instance.events)) - cast(*void)(*instance)) == 8, "AutomationEventList.events has unexpected offset % instead of 8", ((cast(*void)(*instance.events)) - cast(*void)(*instance)));
+        assert(size_of(type_of(AutomationEventList.events)) == 8, "AutomationEventList.events has unexpected size % instead of 8", size_of(type_of(AutomationEventList.events)));
+        assert(size_of(AutomationEventList) == 16, "AutomationEventList has size % instead of 16", size_of(AutomationEventList));
     }
 
     {
