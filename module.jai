@@ -1,17 +1,16 @@
-#module_parameters(WITH_CUSTOM := false, WITH_INTEROP := true);
+#module_parameters(WITH_INTEROP := false, WITH_EXTRAS := false);
 
-#if OS == .WINDOWS {
-   raylib :: #library "win/raylib-420";
-} else #if OS == .MACOS {
-   raylib :: #library "mac/raylib-420";
-} else #if OS == .LINUX {
-   raylib :: #library "linux/raylib-420";
+#if OS == {
+   case .WINDOWS;
+      raylib :: #library "win/raylib-420";
+   case .MACOS;
+      raylib :: #library "mac/raylib-420";
+   case .LINUX;
+      raylib :: #library "linux/raylib-420";
 }
 
 va_list :: *void;
 
-LIGHTGRAY  :: Color.{ 200, 200, 200, 255 };   // Light Gray
-GRAY       :: Color.{ 130, 130, 130, 255 };   // Gray
 DARKGRAY   :: Color.{ 80, 80, 80, 255 };      // Dark Gray
 YELLOW     :: Color.{ 253, 249, 0, 255 };     // Yellow
 GOLD       :: Color.{ 255, 203, 0, 255 };     // Gold
@@ -38,12 +37,11 @@ MAGENTA    :: Color.{ 255, 0, 255, 255 };     // Magenta
 RAYWHITE   :: Color.{ 245, 245, 245, 255 };   // My own White (raylib logo)
 
 #load "raylib.jai";
-#load "macros.jai";
 
 #if WITH_INTEROP {
    #load "interop.jai";
 }
 
-#if WITH_CUSTOM {
-   #load "custom.jai";
+#if WITH_EXTRAS {
+   #load "extras.jai";
 }
